@@ -10,7 +10,6 @@ import (
 	"repo-stat/platform/grpcserver"
 	"repo-stat/platform/logger"
 	"repo-stat/subscriber/config"
-	"repo-stat/subscriber/internal/adapter"
 	"repo-stat/subscriber/internal/usecase"
 
 	subscriberpb "repo-stat/proto/subscriber"
@@ -50,10 +49,9 @@ func run(ctx context.Context) error {
 	}
 
 	queries := db.New(pool)
-	githubAdapter := adapter.NewGitHubAdapter()
 
 	pingUseCase := usecase.NewPing()
-	subscriptionUseCase := usecase.NewSubscription(queries, githubAdapter)
+	subscriptionUseCase := usecase.NewSubscription(queries)
 	pingServer := grpccontroller.NewServer(log, pingUseCase, subscriptionUseCase)
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)

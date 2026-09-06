@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	subscriberpb "repo-stat/proto/subscriber"
-	"repo-stat/subscriber/internal/adapter"
 	"repo-stat/subscriber/internal/usecase"
 
 	"github.com/jackc/pgx/v5"
@@ -75,12 +74,6 @@ func toStatusError(err error) error {
 		return nil
 	case errors.Is(err, usecase.ErrOwnerRequired), errors.Is(err, usecase.ErrRepoNameRequired):
 		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.Is(err, adapter.ErrNotFound):
-		return status.Error(codes.NotFound, err.Error())
-	case errors.Is(err, adapter.ErrUnauthorized):
-		return status.Error(codes.Unauthenticated, err.Error())
-	case errors.Is(err, adapter.ErrRateLimited):
-		return status.Error(codes.ResourceExhausted, err.Error())
 	case errors.Is(err, pgx.ErrNoRows):
 		return status.Error(codes.NotFound, "subscription not found")
 	case errors.Is(err, usecase.ErrAlreadyExists):

@@ -10,10 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type GitHubProvider interface {
-	EnsureRepositoryExists(ctx context.Context, owner, repo string) error
-}
-
 type SubscriptionStore interface {
 	CreateSubscription(ctx context.Context, arg db.CreateSubscriptionParams) (db.Subscription, error)
 	DeleteSubscription(ctx context.Context, arg db.DeleteSubscriptionParams) (int64, error)
@@ -21,8 +17,7 @@ type SubscriptionStore interface {
 }
 
 type Subscription struct {
-	store  SubscriptionStore
-	github GitHubProvider
+	store SubscriptionStore
 }
 
 type SubscriptionModel struct {
@@ -30,8 +25,8 @@ type SubscriptionModel struct {
 	RepoName string
 }
 
-func NewSubscription(store SubscriptionStore, github GitHubProvider) *Subscription {
-	return &Subscription{store: store, github: github}
+func NewSubscription(store SubscriptionStore) *Subscription {
+	return &Subscription{store: store}
 }
 
 func (u *Subscription) Create(ctx context.Context, owner, repo string) (*SubscriptionModel, error) {
@@ -42,10 +37,6 @@ func (u *Subscription) Create(ctx context.Context, owner, repo string) (*Subscri
 	}
 	if repo == "" {
 		return nil, ErrRepoNameRequired
-	}
-
-	if err := u.github.EnsureRepositoryExists(ctx, owner, repo); err != nil {
-		return nil, err
 	}
 
 	subscription, err := u.store.CreateSubscription(ctx, db.CreateSubscriptionParams{
